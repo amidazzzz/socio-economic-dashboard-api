@@ -16,7 +16,7 @@ values = [item["unemployment_rate"] for item in data]
 plt.figure(figsize=(10, 6))
 plt.barh(regions, values)
 plt.xlabel("Уровень безработицы, %")
-plt.title(f"Топ-10 регионов по уровню безработицы ({YEAR})")
+plt.title(f"Топ-10 регионов с самой низкой безработицей ({YEAR})")
 plt.grid(True)
 
 plt.subplots_adjust(left=0.35)

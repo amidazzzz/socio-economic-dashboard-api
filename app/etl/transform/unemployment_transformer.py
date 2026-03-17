@@ -9,6 +9,14 @@ VALID_KEYWORDS = (
     "город",
 )
 
+ALLOWED_AGE_GROUPS = {
+    "15-72 лет",
+    "15 лет и старше",
+}
+
+ALLOWED_YEARS = set(range(2017, 2024))
+
+
 def is_subject(region: str) -> bool:
     return any(k in region for k in VALID_KEYWORDS)
 
@@ -63,12 +71,10 @@ def transform_unemployment(df: pd.DataFrame) -> list[dict]:
         age_group = str(row.iloc[0]).strip()
         region = str(row.iloc[1]).strip()
 
-        if age_group != "15-72 лет":
+        if age_group not in ALLOWED_AGE_GROUPS:
             continue
         if not is_subject(region):
             continue
-
-        ALLOWED_YEARS = set(range(2000, 2024))
 
         for col_idx, year in year_cols.items():
             if year not in ALLOWED_YEARS:
@@ -87,4 +93,3 @@ def transform_unemployment(df: pd.DataFrame) -> list[dict]:
             })
 
     return records
-

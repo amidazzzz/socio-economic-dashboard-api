@@ -16,11 +16,13 @@ async def get_values(
     region_id: int = Query(...),
     start_year: int | None = None,
     end_year: int | None = None,
+    period: str = Query(default="year"),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(IndicatorValue).where(
         IndicatorValue.indicator_id == indicator_id,
         IndicatorValue.region_id == region_id,
+        IndicatorValue.period == period,
     )
 
     if start_year:

@@ -2,7 +2,7 @@ import requests
 import matplotlib.pyplot as plt
 
 REGION_ID = 122
-URL = f"http://localhost:8000/api/analytics/region/{REGION_ID}/growth"
+URL = f"http://localhost:8000/api/analytics/region/{REGION_ID}/metrics"
 
 response = requests.get(URL)
 data = response.json()
@@ -13,12 +13,12 @@ if not isinstance(data, list):
 years = [item["year"] for item in data]
 
 population_growth = [
-    item["population_growth_pct"]
+    item["population_growth_rate"]
     for item in data
 ]
 
 unemployment_growth = [
-    item["unemployment_growth_pct"]
+    item["unemployment_delta"]
     for item in data
 ]
 
@@ -26,8 +26,8 @@ plt.figure()
 plt.plot(years, population_growth, label="Население")
 plt.plot(years, unemployment_growth, label="Безработица")
 plt.xlabel("Год")
-plt.ylabel("Темп роста, %")
-plt.title("Темпы роста населения и безработицы")
+plt.ylabel("Изменение")
+plt.title("Динамика населения и безработицы")
 plt.legend()
 plt.grid(True)
 
