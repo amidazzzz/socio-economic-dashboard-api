@@ -1,5 +1,7 @@
 import pandas as pd
 
+from app.etl.contracts import IndicatorValueRecord
+
 VALID_KEYWORDS = (
     "область",
     "край",
@@ -62,8 +64,8 @@ def find_year_value_columns(df: pd.DataFrame) -> dict[int, int]:
 
     return mapping
 
-def transform_unemployment(df: pd.DataFrame) -> list[dict]:
-    records = []
+def transform_unemployment(df: pd.DataFrame) -> list[IndicatorValueRecord]:
+    records: list[IndicatorValueRecord] = []
 
     year_cols = find_year_value_columns(df)
 

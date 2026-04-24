@@ -1,27 +1,25 @@
 import asyncio
 
-from app.core.database import AsyncSessionLocal
 from app.etl.extract.fedstat_unemployment import extract_unemployment_xls
+from app.etl.job_runner import IndicatorETLJob, run_indicator_job
 from app.etl.transform.unemployment_transformer import transform_unemployment
-from app.etl.loader.indicator_value_loader import load_indicator_values
 
 
-DATA_PATH = "data/unemployment.xls"
-INDICATOR_CODE = "UNEMPLOYMENT_RATE"
+JOB = IndicatorETLJob(
+    job_name="unemployment",
+    indicator_code="UNEMPLOYMENT_RATE",
+    data_path="data/unemployment.xls",
+    extractor=extract_unemployment_xls,
+    transformer=transform_unemployment,
+)
+
+
+async def run():
+    return await run_indicator_job(JOB)
 
 
 async def main():
-    df_raw = await extract_unemployment_xls(DATA_PATH)
-    records = transform_unemployment(df_raw)
-    print(f"records count = {len(records)}")
-    print(records[:5])
-
-    async with AsyncSessionLocal() as session:
-        await load_indicator_values(
-            session=session,
-            indicator_code=INDICATOR_CODE,
-            records=records,
-        )
+    print(await run())
 
 
 if __name__ == "__main__":

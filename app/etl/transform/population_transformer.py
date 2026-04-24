@@ -1,5 +1,7 @@
 import pandas as pd
 
+from app.etl.contracts import IndicatorValueRecord
+
 
 VALID_KEYWORDS = (
     "область",
@@ -34,13 +36,13 @@ def extract_year_columns(df: pd.DataFrame) -> list[tuple[str, int]]:
     return year_columns
 
 
-async def transform_population(df: pd.DataFrame) -> list[dict]:
+def transform_population(df: pd.DataFrame) -> list[IndicatorValueRecord]:
     renamed_columns = list(df.columns)
     renamed_columns[0] = "unit"
     renamed_columns[1] = "region"
     df.columns = renamed_columns
 
-    records: list[dict] = []
+    records: list[IndicatorValueRecord] = []
     year_columns = extract_year_columns(df)
 
     for _, row in df.iterrows():
