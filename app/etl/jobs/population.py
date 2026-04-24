@@ -1,24 +1,25 @@
 import asyncio
 
-from app.core.database import AsyncSessionLocal
 from app.etl.extract.fedstat_population import extract_population_xls
+from app.etl.job_runner import IndicatorETLJob, run_indicator_job
 from app.etl.transform.population_transformer import transform_population
-from app.etl.loader.indicator_value_loader import load_indicator_values
 
 
-DATA_PATH = "data/population.xls"
+JOB = IndicatorETLJob(
+    job_name="population",
+    indicator_code="POPULATION_TOTAL",
+    data_path="data/population.xls",
+    extractor=extract_population_xls,
+    transformer=transform_population,
+)
+
+
+async def run():
+    return await run_indicator_job(JOB)
 
 
 async def main():
-    df = await extract_population_xls(DATA_PATH)
-    records = await transform_population(df)
-
-    async with AsyncSessionLocal() as db:
-        await load_indicator_values(
-            session=db,
-            indicator_code="POPULATION_TOTAL",
-            records=records,
-        )
+    print(await run())
 
 
 if __name__ == "__main__":

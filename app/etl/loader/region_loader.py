@@ -1,7 +1,8 @@
 import pandas as pd
-from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 
+from app.etl.extract.readers import read_csv_async
 from app.model.region import Region
 
 
@@ -26,15 +27,15 @@ def detect_region_type(name: str) -> str:
     return "other"
 
 
-async def load_regions(session: AsyncSession) -> None:
-    df = pd.read_csv(
-        OKATO_PATH,
+async def load_regions(session: AsyncSession, path: str = OKATO_PATH) -> int:
+    df = await read_csv_async(
+        path,
         sep=";",
         dtype=str,
         encoding="cp1251"
     )
 
-    df.fillna("000")
+    df = df.fillna("000")
 
     df = df.rename(columns={
         "00": "region_code",
@@ -59,18 +60,30 @@ async def load_regions(session: AsyncSession) -> None:
 
     regions_df = regions_df.drop_duplicates(subset=["code"], keep="first")
 
-    regions = [
-        Region(
-            code=row["code"],
-            name=row["name"].strip(),
-            type=detect_region_type(row["name"]),
-            parent_id=None,
+    synced = 0
+    for _, row in regions_df.iterrows():
+        region_name = row["name"].strip()
+        stmt = (
+            insert(Region)
+            .values(
+                code=row["code"],
+                name=region_name,
+                type=detect_region_type(region_name),
+                parent_id=None,
+            )
+            .on_conflict_do_update(
+                index_elements=["code"],
+                set_={
+                    "name": region_name,
+                    "type": detect_region_type(region_name),
+                    "parent_id": None,
+                },
+            )
         )
-        for _, row in regions_df.iterrows()
-    ]
+        await session.execute(stmt)
+        synced += 1
 
-    await session.execute(delete(Region))
-    session.add_all(regions)
     await session.commit()
 
-    print(f"[ETL] Загружено субъектов РФ: {len(regions)}")
+    print(f"[ETL] Синхронизировано субъектов РФ: {synced}")
+    return synced

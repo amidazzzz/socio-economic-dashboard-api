@@ -1,11 +1,15 @@
 import asyncio
-from app.core.database import AsyncSessionLocal
+
+from app.etl.job_runner import run_session_job
 from app.etl.loader.region_loader import load_regions
 
 
+async def run():
+    return await run_session_job("regions", load_regions)
+
+
 async def main():
-    async with AsyncSessionLocal() as db:
-        await load_regions(db)
+    print(await run())
 
 
 if __name__ == "__main__":
